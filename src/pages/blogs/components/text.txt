@@ -1,0 +1,52 @@
+useEffect(() => {
+        setImg("");
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, "text/html");
+        const imgTags = doc.querySelectorAll("img");
+        const srcAttributes = Array.from(imgTags)
+            .map((imgTag) => imgTag.getAttribute("src"))
+            .filter((src) => src.startsWith("data:image"));
+
+        srcAttributes.forEach((src) => {
+            setImg(src);
+        });
+    }, [content]);
+
+    useEffect(() => {
+        async function postDataWithAuthorization() {
+            const response = await fetch(
+                "https://api.telemed.sabahna.com/api/sys-admin/blogs/uploadphoto",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                    body: JSON.stringify({ photo: img }),
+                }
+            );
+            const responseData = await response.json();
+            console.log(responseData);
+            setImgSrc(responseData.data);
+        }
+        postDataWithAuthorization();
+    }, [img, user.token]);
+    // console.log(imgSrc);
+    useEffect(() => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, "text/html");
+        const imgTags = doc.querySelectorAll("img");
+        let matchImgTag = Array.from(imgTags).find(
+            (tag) => tag.getAttribute("src") === img
+        );
+        // console.log(matchImgTag);
+        if (matchImgTag) {
+            console.log(imgSrc);
+            matchImgTag.setAttribute("src", imgSrc);
+        }
+
+        console.log(doc.body.innerHTML);
+        setContent(doc.body.innerHTML);
+
+        // Get the modified HTML content back
+    }, [imgSrc, content, img]);
